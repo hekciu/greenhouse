@@ -5,6 +5,7 @@
 #include <esp_wifi_types_generic.h>
 
 #include "network.h"
+#include "pwm.h"
 
 
 static esp_err_t main_endpoint_handler(httpd_req_t * req) {
@@ -43,4 +44,5 @@ void app_main(void) {
 
     error_check(httpd_register_uri_handler(handle, &main_endpoint));
 
+    error_check(initialize_pwm());
 }
