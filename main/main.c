@@ -7,6 +7,7 @@
 #include "network.h"
 #include "pwm.h"
 #include "utils.h"
+#include "dht22.h"
 
 
 #define QUERY_BUFFER_SIZE 2000
@@ -90,6 +91,20 @@ static void error_check(esp_err_t err) {
 
 
 void app_main(void) {
+    error_check(dht22_initialize());
+
+    dht22_data test_data = {0};
+    dht22_read(&test_data);
+
+    printf(
+        "temperature: %d relative humidity: %d checksum: %d checksum valid: %d\n",
+        dht22_get_RH(&test_data),
+        dht22_get_T(&test_data),
+        test_data.checksum,
+        dht22_is_checksum_valid(&test_data)
+    );
+
+    /*
     error_check(initialize_nvs());
     error_check(initialize_access_point());
 
@@ -104,4 +119,5 @@ void app_main(void) {
     error_check(initialize_pwm());
 
     error_check(set_pwm(50));
+    */
 }

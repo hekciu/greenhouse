@@ -14,6 +14,7 @@ static const char * TAG = "PWM";
 
 
 static inline uint32_t percent_to_compare(uint8_t input) {
+    // TODO: first float cast could probably be thrown away?
     return (float)((float)input / (float)100) * PERIOD_TICKS;
 };
 
