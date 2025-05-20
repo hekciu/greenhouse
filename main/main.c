@@ -97,7 +97,7 @@ void app_main(void) {
     dht22_read(&test_data);
 
     printf(
-        "temperature: %d relative humidity: %d checksum: %d checksum valid: %d\n",
+        "temperature: %f relative humidity: %f checksum: %d checksum valid: %d\n",
         dht22_get_RH(&test_data),
         dht22_get_T(&test_data),
         test_data.checksum,
