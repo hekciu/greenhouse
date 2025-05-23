@@ -94,15 +94,20 @@ void app_main(void) {
     error_check(dht22_initialize());
 
     dht22_data test_data = {0};
-    dht22_read(&test_data);
 
-    printf(
-        "temperature: %f relative humidity: %f checksum: %d checksum valid: %d\n",
-        dht22_get_RH(&test_data),
-        dht22_get_T(&test_data),
-        test_data.checksum,
-        dht22_is_checksum_valid(&test_data)
-    );
+    while (1) {
+        dht22_read(&test_data);
+
+        printf(
+            "temperature: %f relative humidity: %f checksum: %d checksum valid: %d\n",
+            dht22_get_T(&test_data),
+            dht22_get_RH(&test_data),
+            test_data.checksum,
+            dht22_is_checksum_valid(&test_data)
+        );
+
+        vTaskDelay(500);
+    }
 
     /*
     error_check(initialize_nvs());
