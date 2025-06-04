@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "esp_wifi.h"
+#include "esp_log.h"
 #include "nvs_flash.h"
 #include "esp_http_server.h"
 #include <esp_wifi_types_generic.h>
@@ -13,6 +14,9 @@
 
 #define QUERY_BUFFER_SIZE 2000
 #define VALUE_PARAM_BUFFER_SIZE 4
+#define MAIN_TASK_STACK_SIZE 4096
+
+static const char * TAG = "MAIN";
 
 
 static const char resp_ok[] = "Ok";
@@ -89,9 +93,42 @@ static void error_check(esp_err_t err) {
 }
 
 
+static void vTaskRegulateTemperature(void * _) {
+    dht22_data current_data = {0};
+    esp_err_t err;
+
+    while (1) {
+        err = dht22_read(&current_data);
+
+        int checksum_valid = dht22_is_checksum_valid(&current_data);
+
+        if (err != ESP_OK || checksum_valid != 0) {
+            ESP_LOGE(TAG, "an error has occured while reading dht22 data");
+            pid_disable();
+
+            vTaskDelay((PID_STEP_S * 1000) / portTICK_PERIOD_MS);
+            continue;
+        } else {
+            pid_enable();
+        }
+
+        float temperature = dht22_get_T(&current_data);
+
+        uint8_t heater_power_percent = pid_calculate(temperature);
+
+        float current_given_value = pid_get_given_value();
+
+        ESP_LOGI(TAG, "given temp: %f C, current temp: %f C, setting power to %d percent\n", current_given_value, temperature, heater_power_percent);
+
+        set_pwm(heater_power_percent);
+
+        vTaskDelay((PID_STEP_S * 1000) / portTICK_PERIOD_MS);
+    }
+};
+
 
 void app_main(void) {
-    const float test_given_value = 40.0f;
+    const float default_given_value = 10.0f;
 
     error_check(dht22_initialize());
 
@@ -99,30 +136,8 @@ void app_main(void) {
     pid_set_P(3);
     pid_set_I(0.001);
     pid_set_D(0.001);
-    pid_set_given_value(test_given_value);
+    pid_set_given_value(default_given_value);
 
-    dht22_data test_data = {0};
-
-    while (1) {
-        dht22_read(&test_data);
-
-        printf(
-            "temperature: %f relative humidity: %f checksum: %d checksum valid: %d\n",
-            dht22_get_T(&test_data),
-            dht22_get_RH(&test_data),
-            test_data.checksum,
-            dht22_is_checksum_valid(&test_data)
-        );
-
-        float temperature = dht22_get_T(&test_data);
-        uint8_t header_power_percent = pid_calculate(temperature);
-
-        printf("header power percent: %d\n", header_power_percent);
-
-        vTaskDelay((PID_STEP_S * 1000) / portTICK_PERIOD_MS);
-    }
-
-    /*
     error_check(initialize_nvs());
     error_check(initialize_access_point());
 
@@ -136,6 +151,7 @@ void app_main(void) {
 
     error_check(initialize_pwm());
 
-    error_check(set_pwm(50));
-    */
+    error_check(set_pwm(0));
+
+    xTaskCreate(vTaskRegulateTemperature, "Temperature Regulation", MAIN_TASK_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, NULL);
 }

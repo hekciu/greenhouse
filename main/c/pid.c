@@ -45,6 +45,11 @@ void pid_set_given_value(const float value) {
 };
 
 
+float pid_get_given_value() {
+    return pid_given_value;
+};
+
+
 void pid_set_P(const float P) {
     pid_P = P;
 };
