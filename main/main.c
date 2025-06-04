@@ -6,6 +6,7 @@
 
 #include "network.h"
 #include "pwm.h"
+#include "pid.h"
 #include "utils.h"
 #include "dht22.h"
 
@@ -49,7 +50,6 @@ static esp_err_t set_pwm_endpoint_handler(httpd_req_t * req) {
         return err;
     }
 
-    // uint8_t value = str_to_first_char_ascii(value_buffer);
     uint8_t value = atoi(value_buffer);
 
     err = set_pwm(value);
@@ -91,7 +91,15 @@ static void error_check(esp_err_t err) {
 
 
 void app_main(void) {
+    const float test_given_value = 40.0f;
+
     error_check(dht22_initialize());
+
+    pid_enable();
+    pid_set_P(3);
+    pid_set_I(0.001);
+    pid_set_D(0.001);
+    pid_set_given_value(test_given_value);
 
     dht22_data test_data = {0};
 
@@ -106,7 +114,12 @@ void app_main(void) {
             dht22_is_checksum_valid(&test_data)
         );
 
-        vTaskDelay(500);
+        float temperature = dht22_get_T(&test_data);
+        uint8_t header_power_percent = pid_calculate(temperature);
+
+        printf("header power percent: %d\n", header_power_percent);
+
+        vTaskDelay((PID_STEP_S * 1000) / portTICK_PERIOD_MS);
     }
 
     /*
