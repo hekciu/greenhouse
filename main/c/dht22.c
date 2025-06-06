@@ -20,7 +20,7 @@
 #include "dht22.h"
 
 #define DHT22_COUNTER_RESOLUTION 1000000
-#define DHT22_TRANSMISSION_PIN GPIO_NUM_1
+#define DHT22_TRANSMISSION_PIN GPIO_NUM_27
 
 const char * TAG = "DHT22";
 
@@ -65,6 +65,7 @@ static inline int _dht22_try_getting_data(uint8_t * output_data) {
     current_elapsed = _dht22_wait_for_state(0, 40);
 
     if (current_elapsed < 20 || current_elapsed > 40) {
+        return current_elapsed;
         return 1;
     }
 

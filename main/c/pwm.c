@@ -10,7 +10,7 @@ static const char * TAG = "PWM";
 
 #define RESOLUTION 1000000
 #define PERIOD_TICKS 20000
-#define OUTPUT_GPIO 0
+#define OUTPUT_GPIO 26
 
 
 static inline uint32_t percent_to_compare(uint8_t input) {
