@@ -1,11 +1,16 @@
 #include <float.h>
 #include <memory.h>
-#include <string.h>
+#include <stdio.h>
+
+#include "esp_log.h"
 
 
-#define STORAGE_CAPACITY 4000
+#define STORAGE_CAPACITY 5
 
 #define CHARS_FOR_ONE_FLOAT_VALUE 24
+
+
+static const char * TAG = "STORAGE";
 
 
 static float measurements[STORAGE_CAPACITY] = {0};
@@ -14,25 +19,63 @@ static int current_first = 0;
 
 
 static void marshal_to_json(char * output) {
-    *output = '{';
+    *output = '[';
 
-    for (int i = current_first; i < num_measurement; i++) {
-        int index = i < STORAGE_CAPACITY ? i : i - STORAGE_CAPACITY;
+    int currently_written = 0;
 
-        *(output + index)
+    for (int i = 0; i < num_measurements; i++) {
+        int index = (i + current_first) % STORAGE_CAPACITY;
+
+        ESP_LOGI(TAG, "AAAAAAAAAAAAAAAAAAAAAAAAAA\n");
+        ESP_LOGI(TAG, "writing value from index: %d, value: %f\n", index, measurements[index]);
+        ESP_LOGI(TAG, "AAAAAAAAAAAAAAAAAAAAAAAAAA\n");
+
+        char * value_ptr = (output + currently_written + 1);
+
+        int n_written = snprintf(value_ptr, CHARS_FOR_ONE_FLOAT_VALUE, "%f", measurements[index]);
+
+        currently_written += n_written;
+
+        if (i != (num_measurements - 1)) {
+            *(value_ptr + n_written) = ',';
+        } else {
+            *(value_ptr + n_written) = ']';
+            *(value_ptr + n_written + 1) = '\0';
+        }
+
+        currently_written += 1;
     }
 };
 
 
-void storage_add_measurement(const float temperature) {};
+void storage_add_measurement(const float temperature) {
+    int index;
+
+    if (num_measurements == STORAGE_CAPACITY) {
+        if (current_first == (STORAGE_CAPACITY - 1)) {
+            current_first = 0;
+            index = STORAGE_CAPACITY - 1;
+        } else {
+            index = current_first;
+            current_first = current_first + 1;
+        }
+    } else {
+        index = num_measurements;
+        num_measurements++;
+    }
+
+    measurements[index] = temperature;
+
+    ESP_LOGI(TAG, "adding measurement at index: %d, num_measurements: %d, current_first: %d\n", index, num_measurements, current_first);
+};
 
 
 void storage_get_json_data(char ** output_ptr) {
-    const int buffer_size = num_measurements *
-        CHARS_FOR_ONE_FLOAT_VALUE *
-        + num_measurements // semicolons
-        + 2 // curly brackers
-        + 1; // null terminationh
+    const int buffer_size = STORAGE_CAPACITY *
+        CHARS_FOR_ONE_FLOAT_VALUE
+        + STORAGE_CAPACITY // semicolons
+        + 2 // square brackers
+        + 1; // null termination
 
     *output_ptr = malloc(buffer_size);
 

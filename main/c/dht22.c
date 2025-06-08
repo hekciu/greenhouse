@@ -64,8 +64,7 @@ static inline int _dht22_try_getting_data(uint8_t * output_data) {
 
     current_elapsed = _dht22_wait_for_state(0, 40);
 
-    if (current_elapsed < 20 || current_elapsed > 40) {
-        return current_elapsed;
+    if (current_elapsed < 15 || current_elapsed > 40) {
         return 1;
     }
 
@@ -73,7 +72,7 @@ static inline int _dht22_try_getting_data(uint8_t * output_data) {
 
     current_elapsed = _dht22_wait_for_state(1, 80);
 
-    if (current_elapsed < 60 || current_elapsed > 80) {
+    if (current_elapsed < 50 || current_elapsed > 80) {
         return 2;
     }
 
@@ -81,7 +80,7 @@ static inline int _dht22_try_getting_data(uint8_t * output_data) {
 
     current_elapsed = _dht22_wait_for_state(0, 80);
 
-    if (current_elapsed < 60 || current_elapsed > 80) {
+    if (current_elapsed < 50 || current_elapsed > 80) {
         return 3;
     }
 
@@ -95,7 +94,7 @@ static inline int _dht22_try_getting_data(uint8_t * output_data) {
         for (uint8_t j = 0; j < 8; j++) {
             current_elapsed = _dht22_wait_for_state(1, 55);
 
-            if (current_elapsed < 36 || current_elapsed > 55) {
+            if (current_elapsed < 32 || current_elapsed > 55) {
                 return 4;
             }
 
