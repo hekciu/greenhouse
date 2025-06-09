@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Greenhouse panel</title>
+    </head>
+
+    <body>
+        <h1>
+            Greenhouse temperature regulation panel
+        </h1>
+        <h3>Info (<button onClick="reload_statistics()">reload</button>)</h3>
+        <h5 id="info">
+        </h5>
+
+        <h3>Set given temperature</h3>
+        <form id="given-temp-form">
+            <input type="number" id="form-input" step="0.1">
+        </form>
+
+        <h3>Measurements (<button onClick="reload_measurements()">reload</button>)</h3>
+        <ol id="measurements">
+        </ol>
+    </body>
+
+    <script>
+        reload_statistics();
+        reload_measurements();
+
+        document.getElementById("given-temp-form").addEventListener("submit", (e) => {
+            e.preventDefault();
+
+            const formInputEl = document.getElementById("form-input");
+
+            (async () => {
+                await fetch(`/api/temperature?value=${formInputEl.value}`, {
+                    method: 'POST',
+                });
+            })();
+        })
+
+        async function reload_statistics() {
+            const infoEl = document.getElementById("info");
+
+            const resp = await fetch("/api/info");
+            const content = await resp.text();
+
+            infoEl.innerHTML = "";
+            infoEl.insertAdjacentHTML("beforeend", content);
+        }
+
+        async function reload_measurements() {
+            const measurementsEl = document.getElementById("measurements");
+
+            const resp = await fetch("/api/measurements");
+            const measurements = await resp.json();
+
+            const content = measurements.reverse().reduce((acc, cur) => {
+                acc += `<li>${cur} C</li>`;
+
+                return acc;
+            }, "");
+
+            measurementsEl.innerHTML = "";
+            measurementsEl.insertAdjacentHTML("beforeend", content);
+        }
+    </script>
+</html>

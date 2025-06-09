@@ -13,6 +13,9 @@
 #include "dht22.h"
 
 
+#include "../../index.c"
+
+
 #define QUERY_BUFFER_SIZE 2000
 #define VALUE_PARAM_BUFFER_SIZE 4
 #define MAIN_TASK_STACK_SIZE 4096
@@ -42,19 +45,18 @@ static char value_buffer[VALUE_PARAM_BUFFER_SIZE];
 
 
 static esp_err_t main_endpoint_handler(httpd_req_t * req) {
-    const char resp[] = "greenhouse panel will be here";
-    httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
+    httpd_resp_send(req, index_page, index_page_length);
     return ESP_OK;
 };
 
 
-static esp_err_t debug_endpoint_handler(httpd_req_t * req) {
+static esp_err_t info_endpoint_handler(httpd_req_t * req) {
     char resp[MAX_DEBUG_INFO_SIZE];
 
     snprintf(
         resp,
         MAX_DEBUG_INFO_SIZE - 1,
-        "last error: %d\ncurrent temperature: %f\n given temperature: %f\ntime since last measurement: %ld\n s current power: %d percent\n",
+        "last error: %d<br/>current temperature: %f<br/> given temperature: %f<br/>time since last measurement: %ld s<br/> current power: %d percent\n",
         last_error,
         current_temperature,
         pid_get_given_value(),
@@ -137,10 +139,10 @@ static httpd_uri_t get_measurements_endpoint = {
 };
 
 
-static httpd_uri_t debug_endpoint = {
-    .uri = "/debug",
+static httpd_uri_t info_endpoint = {
+    .uri = "/api/info",
     .method = HTTP_GET,
-    .handler = debug_endpoint_handler,
+    .handler = info_endpoint_handler,
     .user_ctx = NULL
 };
 
@@ -226,7 +228,7 @@ void app_main(void) {
 
     error_check(httpd_register_uri_handler(handle, &get_measurements_endpoint));
 
-    error_check(httpd_register_uri_handler(handle, &debug_endpoint));
+    error_check(httpd_register_uri_handler(handle, &info_endpoint));
 
     error_check(initialize_pwm());
 

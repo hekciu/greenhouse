@@ -26,10 +26,6 @@ static void marshal_to_json(char * output) {
     for (int i = 0; i < num_measurements; i++) {
         int index = (i + current_first) % STORAGE_CAPACITY;
 
-        ESP_LOGI(TAG, "AAAAAAAAAAAAAAAAAAAAAAAAAA\n");
-        ESP_LOGI(TAG, "writing value from index: %d, value: %f\n", index, measurements[index]);
-        ESP_LOGI(TAG, "AAAAAAAAAAAAAAAAAAAAAAAAAA\n");
-
         char * value_ptr = (output + currently_written + 1);
 
         int n_written = snprintf(value_ptr, CHARS_FOR_ONE_FLOAT_VALUE, "%f", measurements[index]);
@@ -65,8 +61,6 @@ void storage_add_measurement(const float temperature) {
     }
 
     measurements[index] = temperature;
-
-    ESP_LOGI(TAG, "adding measurement at index: %d, num_measurements: %d, current_first: %d\n", index, num_measurements, current_first);
 };
 
 

@@ -94,7 +94,7 @@ static inline int _dht22_try_getting_data(uint8_t * output_data) {
         for (uint8_t j = 0; j < 8; j++) {
             current_elapsed = _dht22_wait_for_state(1, 55);
 
-            if (current_elapsed < 32 || current_elapsed > 55) {
+            if (current_elapsed < 28 || current_elapsed > 55) {
                 return 4;
             }
 
