@@ -1,3 +1,6 @@
+#ifndef PID_H
+#define PID_H
+
 #include "esp_err.h"
 
 
@@ -11,3 +14,5 @@ void pid_set_I(const float I);
 void pid_set_D(const float D);
 void pid_enable();
 void pid_disable();
+
+#endif

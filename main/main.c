@@ -11,6 +11,7 @@
 #include "pid.h"
 #include "utils.h"
 #include "dht22.h"
+#include "adc.h"
 
 
 #include "../../index.c"
@@ -206,6 +207,8 @@ static void vTaskRegulateTemperature(void * _) {
 
 void app_main(void) {
     const float default_given_value = 40.0f;
+
+    error_check(initialize_adc());
 
     error_check(dht22_initialize());
 
