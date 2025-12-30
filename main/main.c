@@ -35,6 +35,8 @@ static float current_temperature = 0.0f;
 static uint32_t time_since_last_measurement = 0;
 static uint8_t current_pwm = 0;
 
+static pid_handle pid_temperature = { 0 };
+
 static const char * TAG = "MAIN";
 
 
@@ -62,7 +64,7 @@ static esp_err_t info_endpoint_handler(httpd_req_t * req) {
         "last error: %d<br/>current temperature: %f<br/> given temperature: %f<br/>time since last measurement: %ld s<br/> current power: %d percent\n",
         last_error,
         current_temperature,
-        pid_get_given_value(),
+        pid_get_given_value(&pid_temperature),
         time_since_last_measurement,
         current_pwm
     );
@@ -110,7 +112,7 @@ static esp_err_t set_given_value_endpoint_handler(httpd_req_t * req) {
 
     float value = atof(value_buffer);
 
-    pid_set_given_value(value);
+    pid_set_given_value(&pid_temperature, value);
 
     httpd_resp_send(req, resp_ok, HTTPD_RESP_USE_STRLEN);
 
@@ -170,7 +172,7 @@ static void vTaskRegulateTemperature(void * _) {
 
         if (err != ESP_OK || checksum_valid != 0) {
             ESP_LOGE(TAG, "an error has occured while reading dht22 data");
-            pid_disable();
+            pid_disable(&pid_temperature);
             last_error = G_ERR_DHT22_FAILED;
 
             vTaskDelay((TEMPERATURE_INTERVAL_S * 1000) / portTICK_PERIOD_MS);
@@ -178,7 +180,7 @@ static void vTaskRegulateTemperature(void * _) {
         }
 
         time_since_last_measurement = 0;
-        pid_enable(TEMPERATURE_INTERVAL_S);
+        pid_enable(&pid_temperature, TEMPERATURE_INTERVAL_S);
 
         float temperature = dht22_get_T(&current_data);
 
@@ -186,9 +188,9 @@ static void vTaskRegulateTemperature(void * _) {
 
         current_temperature = temperature;
 
-        uint8_t heater_power_percent = pid_calculate(temperature);
+        uint8_t heater_power_percent = pid_calculate(&pid_temperature, temperature);
 
-        float current_given_value = pid_get_given_value();
+        float current_given_value = pid_get_given_value(&pid_temperature);
 
         ESP_LOGI(TAG, "given temp: %f C, current temp: %f C, setting power to %d percent\n", current_given_value, temperature, heater_power_percent);
 
@@ -222,11 +224,11 @@ void app_main(void) {
 
     error_check(dht22_initialize());
 
-    pid_enable(TEMPERATURE_INTERVAL_S);
-    pid_set_P(3);
-    pid_set_I(0.001);
-    pid_set_D(0.001);
-    pid_set_given_value(default_given_value);
+    pid_enable(&pid_temperature, TEMPERATURE_INTERVAL_S);
+    pid_set_P(&pid_temperature, 3);
+    pid_set_I(&pid_temperature, 0.001);
+    pid_set_D(&pid_temperature, 0.001);
+    pid_set_given_value(&pid_temperature, default_given_value);
 
     error_check(initialize_nvs());
     error_check(initialize_access_point());
