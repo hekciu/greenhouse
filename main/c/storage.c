@@ -4,8 +4,7 @@
 
 #include "esp_log.h"
 
-
-#define STORAGE_CAPACITY 5
+#include "storage.h"
 
 #define CHARS_FOR_ONE_FLOAT_VALUE 24
 
@@ -13,26 +12,21 @@
 static const char * TAG = "STORAGE";
 
 
-static float measurements[STORAGE_CAPACITY] = {0};
-static int num_measurements = 0;
-static int current_first = 0;
-
-
-static void marshal_to_json(char * output) {
+static void marshal_to_json(storage_handle* handle, char * output) {
     *output = '[';
 
     int currently_written = 0;
 
-    for (int i = 0; i < num_measurements; i++) {
-        int index = (i + current_first) % STORAGE_CAPACITY;
+    for (int i = 0; i < handle->num_measurements; i++) {
+        int index = (i + handle->current_first) % STORAGE_CAPACITY;
 
         char * value_ptr = (output + currently_written + 1);
 
-        int n_written = snprintf(value_ptr, CHARS_FOR_ONE_FLOAT_VALUE, "%f", measurements[index]);
+        int n_written = snprintf(value_ptr, CHARS_FOR_ONE_FLOAT_VALUE, "%f", handle->measurements[index]);
 
         currently_written += n_written;
 
-        if (i != (num_measurements - 1)) {
+        if (i != (handle->num_measurements - 1)) {
             *(value_ptr + n_written) = ',';
         } else {
             *(value_ptr + n_written) = ']';
@@ -44,27 +38,27 @@ static void marshal_to_json(char * output) {
 };
 
 
-void storage_add_measurement(const float temperature) {
+void storage_add_measurement(storage_handle* handle, float temperature) {
     int index;
 
-    if (num_measurements == STORAGE_CAPACITY) {
-        if (current_first == (STORAGE_CAPACITY - 1)) {
-            current_first = 0;
+    if (handle->num_measurements == STORAGE_CAPACITY) {
+        if (handle->current_first == (STORAGE_CAPACITY - 1)) {
+            handle->current_first = 0;
             index = STORAGE_CAPACITY - 1;
         } else {
-            index = current_first;
-            current_first = current_first + 1;
+            index = handle->current_first;
+            handle->current_first++;
         }
     } else {
-        index = num_measurements;
-        num_measurements++;
+        index = handle->num_measurements;
+        handle->num_measurements++;
     }
 
-    measurements[index] = temperature;
+    handle->measurements[index] = temperature;
 };
 
 
-void storage_get_json_data(char ** output_ptr) {
+void storage_get_json_data(storage_handle* handle, char ** output_ptr) {
     const int buffer_size = STORAGE_CAPACITY *
         CHARS_FOR_ONE_FLOAT_VALUE
         + STORAGE_CAPACITY // semicolons
@@ -73,5 +67,5 @@ void storage_get_json_data(char ** output_ptr) {
 
     *output_ptr = malloc(buffer_size);
 
-    marshal_to_json(*output_ptr);
+    marshal_to_json(handle, *output_ptr);
 }

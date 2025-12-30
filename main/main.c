@@ -36,6 +36,7 @@ static uint32_t time_since_last_measurement = 0;
 static uint8_t current_pwm = 0;
 
 static pid_handle pid_temperature = { 0 };
+static storage_handle storage_temperature = { 0 };
 
 static const char * TAG = "MAIN";
 
@@ -77,7 +78,7 @@ static esp_err_t info_endpoint_handler(httpd_req_t * req) {
 static esp_err_t get_measurements_endpoint_handler(httpd_req_t * req) {
     char * resp = NULL;
 
-    storage_get_json_data(&resp);
+    storage_get_json_data(&storage_temperature, &resp);
 
     if (resp != NULL) {
         httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
@@ -184,7 +185,7 @@ static void vTaskRegulateTemperature(void * _) {
 
         float temperature = dht22_get_T(&current_data);
 
-        storage_add_measurement(temperature);
+        storage_add_measurement(&storage_temperature, temperature);
 
         current_temperature = temperature;
 
