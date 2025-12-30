@@ -17,6 +17,8 @@
 #include "../../index.c"
 
 
+#define TEMPERATURE_INTERVAL_S 5
+#define HUMIDITY_INTERVAL_S 5
 #define QUERY_BUFFER_SIZE 2000
 #define VALUE_PARAM_BUFFER_SIZE 4
 #define MAIN_TASK_STACK_SIZE 4096
@@ -161,7 +163,7 @@ static void vTaskRegulateTemperature(void * _) {
     esp_err_t err;
 
     while (1) {
-        time_since_last_measurement += PID_STEP_S;
+        time_since_last_measurement += TEMPERATURE_INTERVAL_S;
         err = dht22_read(&current_data);
 
         int checksum_valid = dht22_is_checksum_valid(&current_data);
@@ -171,12 +173,12 @@ static void vTaskRegulateTemperature(void * _) {
             pid_disable();
             last_error = G_ERR_DHT22_FAILED;
 
-            vTaskDelay((PID_STEP_S * 1000) / portTICK_PERIOD_MS);
+            vTaskDelay((TEMPERATURE_INTERVAL_S * 1000) / portTICK_PERIOD_MS);
             continue;
         }
 
         time_since_last_measurement = 0;
-        pid_enable();
+        pid_enable(TEMPERATURE_INTERVAL_S);
 
         float temperature = dht22_get_T(&current_data);
 
@@ -200,7 +202,15 @@ static void vTaskRegulateTemperature(void * _) {
             last_error = G_ERR_NONE;
         }
 
-        vTaskDelay((PID_STEP_S * 1000) / portTICK_PERIOD_MS);
+        vTaskDelay((TEMPERATURE_INTERVAL_S * 1000) / portTICK_PERIOD_MS);
+    }
+};
+
+static void vTaskRegulateSoilHumidity(void * _) {
+    for (;;) {
+        adc_read();
+
+        vTaskDelay((HUMIDITY_INTERVAL_S * 1000) / portTICK_PERIOD_MS);
     }
 };
 
@@ -212,7 +222,7 @@ void app_main(void) {
 
     error_check(dht22_initialize());
 
-    pid_enable();
+    pid_enable(TEMPERATURE_INTERVAL_S);
     pid_set_P(3);
     pid_set_I(0.001);
     pid_set_D(0.001);
@@ -237,5 +247,9 @@ void app_main(void) {
 
     error_check(set_pwm(0));
 
+    /* Temperature */
     xTaskCreate(vTaskRegulateTemperature, "Temperature Regulation", MAIN_TASK_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, NULL);
+
+    /* Soil humidity */
+    xTaskCreate(vTaskRegulateSoilHumidity, "Soil Humidity Regulation", MAIN_TASK_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, NULL);
 }

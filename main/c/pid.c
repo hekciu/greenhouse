@@ -11,10 +11,11 @@ static double pid_error_sum = 0.0f;
 
 static bool pid_enabled = false;
 static float pid_given_value = 0.0f;
+static int interval_s = 10;
 
 
 static float _calculate_derivative(const float current_error, const float last_error) {
-    return (last_error - current_error) / (float)PID_STEP_S;
+    return (last_error - current_error) / (float)interval_s;
 };
 
 
@@ -65,8 +66,9 @@ void pid_set_D(const float D) {
 };
 
 
-void pid_enable() {
+void pid_enable(int _interval_s) {
     pid_enabled = true;
+    interval_s = _interval_s;
 };
 
 
