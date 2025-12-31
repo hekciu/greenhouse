@@ -1,4 +1,4 @@
-idf_component_register(SRCS "main.c" "c/pid.c" "c/dht22.c" "c/network.c" "c/pwm.c" "c/utils.c" "c/storage.c" "c/adc.c"
+idf_component_register(SRCS "main.c" "c/pid.c" "c/dht22.c" "c/network.c" "c/pwm.c" "c/utils.c" "c/storage.c" "c/adc.c" "c/solenoid_valve.c"
                     PRIV_REQUIRES esp_wifi
                     PRIV_REQUIRES nvs_flash
                     PRIV_REQUIRES esp_http_server

@@ -3,7 +3,7 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "esp_http_server.h"
-#include <esp_wifi_types_generic.h>
+#include "esp_wifi_types_generic.h"
 
 #include "storage.h"
 #include "network.h"
@@ -12,6 +12,7 @@
 #include "utils.h"
 #include "dht22.h"
 #include "adc.h"
+#include "solenoid_valve.h"
 
 
 #include "../../index.c"
@@ -23,6 +24,8 @@
 #define VALUE_PARAM_BUFFER_SIZE 4
 #define MAIN_TASK_STACK_SIZE 4096
 #define MAX_DEBUG_INFO_SIZE 400
+#define SOLENOID_VALVE_GPIO GPIO_NUM_23
+
 
 enum GreenhouseError {
     G_ERR_NONE = 0,
@@ -214,6 +217,8 @@ static void vTaskRegulateSoilHumidity(void * _) {
         adc_read();
 
         vTaskDelay((HUMIDITY_INTERVAL_S * 1000) / portTICK_PERIOD_MS);
+
+        solenoid_valve_set_pwm(0.5);
     }
 };
 
@@ -249,6 +254,8 @@ void app_main(void) {
     error_check(initialize_pwm());
 
     error_check(set_pwm(0));
+
+    error_check(solenoid_valve_init(SOLENOID_VALVE_GPIO));
 
     /* Temperature */
     xTaskCreate(vTaskRegulateTemperature, "Temperature Regulation", MAIN_TASK_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, NULL);
