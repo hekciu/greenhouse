@@ -14,8 +14,13 @@
         </h5>
 
         <h3>Set given temperature</h3>
-        <form id="given-temp-form">
+        <form id="temperature-given-form">
             <input type="number" id="form-input" step="0.1">
+        </form>
+
+        <h3>Set given soil humidity</h3>
+        <form id="humidity-given-form">
+            <input type="number" id="humidity-form-input" step="0.1">
         </form>
 
         <h3>Measurements (<button onClick="reload_measurements()">reload</button>)</h3>
@@ -27,13 +32,25 @@
         reload_statistics();
         reload_measurements();
 
-        document.getElementById("given-temp-form").addEventListener("submit", (e) => {
+        document.getElementById("temperature-given-form").addEventListener("submit", (e) => {
             e.preventDefault();
 
-            const formInputEl = document.getElementById("form-input");
+            const formInputEl = document.getElementById("temperature-form-input");
 
             (async () => {
                 await fetch(`/api/temperature?value=${formInputEl.value}`, {
+                    method: 'POST',
+                });
+            })();
+
+
+        document.getElementById("humidity-given-form").addEventListener("submit", (e) => {
+            e.preventDefault();
+
+            const formInputEl = document.getElementById("humidity-form-input");
+
+            (async () => {
+                await fetch(`/api/humidity?value=${formInputEl.value}`, {
                     method: 'POST',
                 });
             })();

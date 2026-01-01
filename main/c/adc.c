@@ -63,11 +63,13 @@ esp_err_t clear_adc() {
 }
 
 
-esp_err_t adc_read() {
+esp_err_t adc_read(int* output) {
     esp_err_t err;
 
     err = adc_oneshot_get_calibrated_result(adc1_handle, cali_handle, CHOSEN_ADC_CHANNEL, &result);
     if (err != ESP_OK) return err;
+
+    *output = result;
     
     ESP_LOGI(TAG, "ADC%d Channel[%d] Data: %d", ADC_UNIT_1 + 1, CHOSEN_ADC_CHANNEL, result);
 

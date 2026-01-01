@@ -5,6 +5,6 @@
 
 esp_err_t initialize_adc();
 esp_err_t clear_adc();
-esp_err_t adc_read();
+esp_err_t adc_read(int* output);
 
 #endif
