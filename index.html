@@ -23,14 +23,17 @@
             <input type="number" id="humidity-form-input" step="0.1">
         </form>
 
-        <h3>Measurements (<button onClick="reload_measurements()">reload</button>)</h3>
-        <ol id="measurements">
-        </ol>
+        <h3>Temperatute (<button onClick="reload_temperature_measurements()">reload</button>)</h3>
+        <ol id="temperature-measurements"></ol>
+
+        <h3>Soil humidity (<button onClick="reload_humidity_measurements()">reload</button>)</h3>
+        <ol id="humidity-measurements"></ol>
     </body>
 
     <script>
         reload_statistics();
-        reload_measurements();
+        reload_temperature_measurements();
+        reload_humidity_measurements();
 
         document.getElementById("temperature-given-form").addEventListener("submit", (e) => {
             e.preventDefault();
@@ -42,6 +45,7 @@
                     method: 'POST',
                 });
             })();
+        })
 
 
         document.getElementById("humidity-given-form").addEventListener("submit", (e) => {
@@ -66,14 +70,30 @@
             infoEl.insertAdjacentHTML("beforeend", content);
         }
 
-        async function reload_measurements() {
-            const measurementsEl = document.getElementById("measurements");
+        async function reload_temperature_measurements() {
+            const measurementsEl = document.getElementById("temperature-measurements");
 
-            const resp = await fetch("/api/measurements");
+            const resp = await fetch("/api/temperature");
             const measurements = await resp.json();
 
             const content = measurements.reverse().reduce((acc, cur) => {
                 acc += `<li>${cur} C</li>`;
+
+                return acc;
+            }, "");
+
+            measurementsEl.innerHTML = "";
+            measurementsEl.insertAdjacentHTML("beforeend", content);
+        }
+
+        async function reload_humidity_measurements() {
+            const measurementsEl = document.getElementById("humidity-measurements");
+
+            const resp = await fetch("/api/humidity");
+            const measurements = await resp.json();
+
+            const content = measurements.reverse().reduce((acc, cur) => {
+                acc += `<li>${cur} mV</li>`;
 
                 return acc;
             }, "");

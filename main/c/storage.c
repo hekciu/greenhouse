@@ -17,10 +17,10 @@ static void marshal_to_json(storage_handle* handle, char * output) {
 
     int currently_written = 0;
 
+    char * value_ptr = (output + 1);
+
     for (int i = 0; i < handle->num_measurements; i++) {
         int index = (i + handle->current_first) % STORAGE_CAPACITY;
-
-        char * value_ptr = (output + currently_written + 1);
 
         int n_written = snprintf(value_ptr, CHARS_FOR_ONE_FLOAT_VALUE, "%f", handle->measurements[index]);
 
@@ -28,13 +28,15 @@ static void marshal_to_json(storage_handle* handle, char * output) {
 
         if (i != (handle->num_measurements - 1)) {
             *(value_ptr + n_written) = ',';
-        } else {
-            *(value_ptr + n_written) = ']';
-            *(value_ptr + n_written + 1) = '\0';
+
+            currently_written += 1;
         }
 
-        currently_written += 1;
+        value_ptr = (output + currently_written + 1);
     }
+
+    *(value_ptr) = ']';
+    *(value_ptr + 1) = '\0';
 };
 
 
