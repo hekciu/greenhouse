@@ -7,33 +7,39 @@
 
     <body>
         <h1>
-            Greenhouse temperature regulation panel
+            Greenhouse panel
         </h1>
-        <h3>Info (<button onClick="reload_statistics()">reload</button>)</h3>
+        <h3>Info</h3>
         <h5 id="info">
         </h5>
 
-        <h3>Set given temperature</h3>
+        <h3>Set given temperature (C)</h3>
         <form id="temperature-given-form">
-            <input type="number" id="form-input" step="0.1">
+            <input type="number" id="temperature-form-input" step="0.1">
         </form>
 
-        <h3>Set given soil humidity</h3>
+        <h3>Set given soil humidity (mV)</h3>
+        <h6>Air -> more than 520 </h6>
+        <h6>Dry soil -> 520 - 430</h6>
+        <h6>Wet soil -> 430 - 350</h6>
+        <h6>Water -> 350 - 260</h6>
         <form id="humidity-given-form">
             <input type="number" id="humidity-form-input" step="0.1">
         </form>
 
-        <h3>Temperatute (<button onClick="reload_temperature_measurements()">reload</button>)</h3>
+        <h3>Temperature</h3>
         <ol id="temperature-measurements"></ol>
 
-        <h3>Soil humidity (<button onClick="reload_humidity_measurements()">reload</button>)</h3>
+        <h3>Soil humidity</h3>
         <ol id="humidity-measurements"></ol>
     </body>
 
     <script>
-        reload_statistics();
-        reload_temperature_measurements();
-        reload_humidity_measurements();
+        setInterval(() => {
+            reload_statistics();
+            reload_temperature_measurements();
+            reload_humidity_measurements();
+        }, 500);
 
         document.getElementById("temperature-given-form").addEventListener("submit", (e) => {
             e.preventDefault();

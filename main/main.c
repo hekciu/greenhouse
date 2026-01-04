@@ -18,13 +18,13 @@
 #include "../../index.c"
 
 
-#define TEMPERATURE_INTERVAL_S 5
-#define HUMIDITY_INTERVAL_S 5
+#define TEMPERATURE_INTERVAL_S 1
+#define HUMIDITY_INTERVAL_S 1
 #define QUERY_BUFFER_SIZE 2000
-#define VALUE_PARAM_BUFFER_SIZE 4
+#define VALUE_PARAM_BUFFER_SIZE 20
 #define MAIN_TASK_STACK_SIZE 4096
 #define MAX_DEBUG_INFO_SIZE 400
-#define SOLENOID_VALVE_GPIO GPIO_NUM_23
+#define SOLENOID_VALVE_GPIO GPIO_NUM_33
 
 
 enum GreenhouseError {
@@ -74,14 +74,13 @@ static esp_err_t info_endpoint_handler(httpd_req_t * req) {
     snprintf(
         resp,
         MAX_DEBUG_INFO_SIZE - 1,
-        "last error: %d<br/>current temperature: %f<br/> given temperature: %f<br/><br/>current humidity: %f<br/> given humidity: %f<br/>time since last measurement: %ld s<br/> current power: %d percent\n",
-        last_error,
+        "current temperature: %f<br/> given temperature: %f<br/>heater power: %d percent<br/><br/>current humidity: %f<br/> given humidity: %f<br/>valve open: %d percent\n",
         current_temperature,
         pid_get_given_value(&pid_temperature),
+        current_pwm,
         (float)current_humidity,
         pid_get_given_value(&pid_humidity),
-        time_since_last_temperature_measurement,
-        current_pwm
+        solenoid_valve_get_pwm()
     );
 
     httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
@@ -301,7 +300,7 @@ static void vTaskRegulateSoilHumidity(void * _) {
 
         current_humidity = humidity;
 
-        uint8_t valve_open_percent = pid_calculate(&pid_humidity, humidity);
+        uint8_t valve_open_percent = 100 - pid_calculate(&pid_humidity, humidity);
 
         float current_given_value = pid_get_given_value(&pid_humidity);
 
@@ -329,7 +328,7 @@ void app_main(void) {
     pid_set_P(&pid_humidity, 3);
     pid_set_I(&pid_humidity, 0.001);
     pid_set_D(&pid_humidity, 0.001);
-    pid_set_given_value(&pid_humidity, 1000.0f); // mV
+    pid_set_given_value(&pid_humidity, 2500.0f); // mV
 
     error_check(initialize_nvs());
     error_check(initialize_access_point());

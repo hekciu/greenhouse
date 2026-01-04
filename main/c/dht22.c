@@ -20,9 +20,9 @@
 #include "dht22.h"
 
 #define DHT22_COUNTER_RESOLUTION 1000000
-#define DHT22_TRANSMISSION_PIN GPIO_NUM_32
+#define DHT22_TRANSMISSION_PIN GPIO_NUM_27
 
-const char * TAG = "DHT22";
+static const char * TAG = "DHT22";
 
 
 static inline uint8_t _dht22_wait_for_state(bool state, uint32_t timeout) {

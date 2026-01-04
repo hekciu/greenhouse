@@ -2,6 +2,7 @@
 #include "driver/mcpwm_oper.h"
 #include "driver/mcpwm_cmpr.h"
 #include "driver/mcpwm_gen.h"
+#include "driver/gpio.h"
 
 #include "esp_log.h"
 
@@ -10,7 +11,7 @@ static const char * TAG = "PWM";
 
 #define RESOLUTION 1000000
 #define PERIOD_TICKS 20000
-#define OUTPUT_GPIO 26
+#define OUTPUT_GPIO GPIO_NUM_26
 
 
 static inline uint32_t percent_to_compare(uint8_t input) {
